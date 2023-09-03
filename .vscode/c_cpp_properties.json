@@ -121,7 +121,7 @@
                 ]
             },
             "defines": [
-                "PLATFORMIO=60001",
+                "PLATFORMIO=60106",
                 "STM32F103xE",
                 "STM32F1",
                 "USE_HAL_DRIVER",
