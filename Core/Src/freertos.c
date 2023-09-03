@@ -102,8 +102,8 @@ void MX_FREERTOS_Init(void)
 
     /* USER CODE BEGIN RTOS_THREADS */
     /* add threads, ... */
-    xTaskCreate(vLOG_Task, "vLog", configMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY, NULL);
-    xTaskCreate(vLED_1_Task, "LED1", configMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY + 1, NULL);
+    xTaskCreate(vLOG_Task, "vLog", 1024, NULL, tskIDLE_PRIORITY+1, NULL);
+    xTaskCreate(vLED_1_Task, "LED1", configMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY + 2, NULL);
     xTaskCreate(vLED_2_Task, "LED2", configMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY + 2, NULL);
     xTaskCreate(vUART_RX_Task, "UART RX", configMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY + 3, &xUartRxTaskHandle);
     /* USER CODE END RTOS_THREADS */
@@ -137,10 +137,10 @@ void vLED_1_Task(void *pvParameters)
     while (1) {
         HAL_GPIO_WritePin(GPIOC, GPIO_PIN_0, GPIO_PIN_SET);
         ST_LOGI("LED1 OFF");
-        vTaskDelay(1000 / portTICK_RATE_MS);
+        vTaskDelay(10 / portTICK_RATE_MS);
         HAL_GPIO_WritePin(GPIOC, GPIO_PIN_0, GPIO_PIN_RESET);
         ST_LOGI("LED1 ON");
-        vTaskDelay(2000 / portTICK_RATE_MS);
+        vTaskDelay(10 / portTICK_RATE_MS);
     }
 }
 
@@ -149,11 +149,15 @@ void vLED_2_Task(void *pvParameters)
     uint8_t i = 0;
     while (1) {
         HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, GPIO_PIN_SET);
-        debug_printf("\e[0mLED2 OFF%d_2222222222222222222222222222222222222222222222222222222222222222222\r\n", i % 10);
-        vTaskDelay(200 / portTICK_RATE_MS);
+        debug_printf("\e[0mLED2 1FF%d_2222222222222222222222222222222222222222222222222222222222222222222\r\n", i % 10);
+        debug_printf("\e[0mLED2 2FF%d_2222222222222222222222222222222222222222222222222222222222222222222\r\n", i % 10);
+        debug_printf("\e[0mLED2 3FF%d_2222222222222222222222222222222222222222222222222222222222222222222\r\n", i % 10);
+        debug_printf("\e[0mLED2 4FF%d_2222222222222222222222222222222222222222222222222222222222222222222\r\n", i % 10);
+        /* change delay to 40ms, you will see msg lost in output for the reason of queue full */
+        vTaskDelay(50 / portTICK_RATE_MS);
         HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, GPIO_PIN_RESET);
         debug_printf("\e[0mLED2_ON %d_2222222222222222222222222222222222222222222222222222222222222222222\r\n", i % 10);
-        vTaskDelay(200 / portTICK_RATE_MS);
+        vTaskDelay(10 / portTICK_RATE_MS);
         i++;
     }
 }

@@ -59,7 +59,7 @@ void MX_USART1_UART_Init(void)
         Error_Handler();
     }
     /* USER CODE BEGIN USART1_Init 2 */
-    xPrintQueue = xQueueCreate(15, sizeof(char *));
+    xPrintQueue = xQueueCreate(50, sizeof(char *));
 
     __HAL_UART_ENABLE_IT(&huart1, UART_IT_IDLE);
     //设置DMA传输，讲串口1的数据搬运到recvive_buff中，
@@ -179,7 +179,8 @@ int logi_printf(uint32_t tickTime, const char *file, const char *function, int l
     sprintf(logBuffer, "\e[30;31m[%ld](%s %s@%d): %s\r\n", tickTime, file, function, line, buffer);
     vPortFree(buffer);
 
-    xQueueSend(xPrintQueue, &logBuffer, 10);
+    if (xQueueSend(xPrintQueue, &logBuffer, 10) != pdTRUE)
+        vPortFree(logBuffer);
 
     return ret;
 }
@@ -197,7 +198,8 @@ int debug_printf(char *format, ...)
     ret = vsprintf(debug_buf, format, arg);
     va_end(arg);
 
-    xQueueSend(xPrintQueue, &debug_buf, 10);
+    if (xQueueSend(xPrintQueue, &debug_buf, 10) != pdTRUE)
+        vPortFree(debug_buf);
 
     return ret;
 }
@@ -208,8 +210,7 @@ void vLOG_Task(void *pvParameters)
     int ret = 0;
     for (;;) {
         if (xQueueReceive(xPrintQueue, &buffer, portMAX_DELAY)) {
-            //use HAL_UART_STATE_BUSY_TX, when tx dma only
-            //while (HAL_UART_GetState(&huart1) == HAL_UART_STATE_BUSY_TX_RX);  
+            while (huart1.gState != HAL_UART_STATE_READY); 
 
             ret = strlen(buffer);
             memset(sendBuffer, 0, 100);
@@ -218,7 +219,6 @@ void vLOG_Task(void *pvParameters)
             vPortFree(buffer);
 
             HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&sendBuffer, ret);
-            vTaskDelay((const TickType_t) ret / (10*portTICK_PERIOD_MS));
         }
     }
 }
